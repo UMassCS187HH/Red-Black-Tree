@@ -1,41 +1,42 @@
 
 public class Tree<T extends Comparable<T>> {
 	Node<T> head;
-	
+
 	public Tree(){}
-//
+
 	public void rotateRight(Node<T> node){
-		Node<T> Pivot = node.getLeft(),PivotRS = node.getLeft().getRight(),RootOS = node.getRight();
-		
-		node.setLeft(RootOS);
-		node.setRight(PivotRS);
-		Pivot.setLeft(node);
-		if (node.getParent() == null)
-			head = Pivot;
-		else 
-			if (node.getParent().getLeft() == node)
-				node.getParent().setLeft(Pivot);
-			else
-				node.getParent().setRight(Pivot);
+		if (node == null)
+			return;
+		Node<T> k2 = node.getRight(), ncop = node.copy();
+		node.setRight(k2!=null?k2.getLeft():null);
+		if (k2!=null)
+			k2.setLeft(node);
+		if (ncop.getParent()==null)
+			head=k2;
+		else
+			if (ncop.getParent().getRight() == node){
+				ncop.getParent().setRight(k2);
+			} else {
+				ncop.getParent().setLeft(k2);
+			}
 	}
-	
 	public void rotateLeft(Node<T> node){
-		
-		Node<T> Pivot = node.getRight(),PivotRS = node.getRight().getLeft(),RootOS = node.getLeft();
-		
-		node.setLeft(RootOS);
-		node.setRight(PivotRS);
-		Pivot.setLeft(node);
-		if (node.getParent() == null)
-			head = Pivot;
-		else 
-			if (node.getParent().getLeft() == node)
-				node.getParent().setLeft(Pivot);
-			else
-				node.getParent().setRight(Pivot);
+		if (node == null)
+			return;
+		Node<T> k1 = node.getLeft(),ncop = node.copy();
+		node.setLeft(k1!=null?k1.getRight():null);
+		if (k1!=null)
+			k1.setRight(node);
+		if (ncop.getParent()==null)
+			head=k1;
+		else
+			if (ncop.getParent().getRight() == node){
+				ncop.getParent().setRight(k1);
+			} else {
+				ncop.getParent().setLeft(k1);
+			}
+
 	}
-
-
 	public void insert(T data){
 		Node<T> newNode = new Node<T>(data);
 		if (head == null){
@@ -58,12 +59,10 @@ public class Tree<T extends Comparable<T>> {
 					current = current.getRight();
 				}
 			}
-			newNode.setParent(current);
 		}
 		insertCase1(newNode);
-		
-	}
 
+	}
 	public void insertCase1(Node<T> node){
 		if (node.getParent()==null)
 			node.setColor(Color.Black);
@@ -71,8 +70,9 @@ public class Tree<T extends Comparable<T>> {
 			insertCase2(node);
 	}
 	public void insertCase2(Node<T> node){
-		if (node.getParent().getColor() == Color.Black)
-			return;
+		if (node.getParent()!= null)
+			if (node.getParent().getColor() == Color.Black)
+				return;
 		insertCase3(node);
 	}
 	public void insertCase3(Node<T> node){
@@ -85,30 +85,38 @@ public class Tree<T extends Comparable<T>> {
 			insertCase1(g);
 		} else
 			insertCase4(node);
-
-
 	}
 	public void insertCase4(Node<T> node){
 		Node<T> g = node.getGrandParent(); 
+		boolean isPLeft = node.getParent().getLeft() == node;
 
-		if ((node == node.getParent().getRight()) && (node.getParent() == g.getLeft()))
+		if ((node == node.getParent().getRight()) && (node.getParent() == g.getLeft())){
 			rotateLeft(node.getParent());
-		else if ((node == node.getParent().getLeft()) && (node.getParent() == g.getRight())) 
+			if (isPLeft)
+				node.getParent().setLeft(node.getLeft());
+			else
+				node.getParent().setRight(node.getLeft());
+		}else if ((node == node.getParent().getLeft()) && (node.getParent() == g.getRight())) {
 			rotateRight(node.getParent());
+			if (isPLeft)
+				node.getParent().setLeft(node.getRight());
+			else
+				node.getParent().setRight(node.getRight());
+		}
 		insertCase5(node);
-		
+
 	}
 	public void insertCase5(Node<T> node){
 		Node<T> g = node.getGrandParent(); 
 
-		 node.getParent().setColor(Color.Black);
-		 g.setColor(Color.Red);
-		 if (node == node.getParent().getLeft())
-		  rotateRight(g);
-		 else
-		  rotateLeft(g);
+		node.getParent().setColor(Color.Black);
+		if (g!=null)
+			g.setColor(Color.Red);
+		if (node == node.getParent().getLeft())
+			rotateRight(g);
+		else
+			rotateLeft(g);
 	}
-
 	public void remove(Node<T> node){
 		Node<T> child = isLeaf(node.getRight()) ? node.getLeft() : node.getRight();
 		child.setParent(child.getGrandParent());
@@ -121,18 +129,17 @@ public class Tree<T extends Comparable<T>> {
 				child.setColor(Color.Black);
 			else 
 				removeCase1(child);
-		
+
 	}
-	public boolean isLeaf(Node node){
+	public boolean isLeaf(Node<T> node){
 		if (node == null)
-				return false;
+			return false;
 		return node.getLeft() == null && node.getRight()== null;
 	}
-
 	public void removeCase1(Node<T> node){
 		if (node.getParent() != null)
 			removeCase2(node);
-		
+
 	}
 	public void removeCase2(Node<T> node){
 		Node<T> s = node.getSibling();
@@ -150,64 +157,63 @@ public class Tree<T extends Comparable<T>> {
 	public void removeCase3(Node<T> n){
 		Node<T> s = n.getSibling();
 
-		 if ((n.getParent().getColor() == Color.Black) &&
-		     (s.getColor() == Color.Black) &&
-		     (s.getLeft().getColor() == Color.Black) &&
-		     (s.getRight().getColor() == Color.Black)) {
-		  s.setColor(Color.Red);
-		  removeCase1(n.getParent());
-		 } else
-			 removeCase4(n);
+		if ((n.getParent().getColor() == Color.Black) &&
+				(s.getColor() == Color.Black) &&
+				(s.getLeft().getColor() == Color.Black) &&
+				(s.getRight().getColor() == Color.Black)) {
+			s.setColor(Color.Red);
+			removeCase1(n.getParent());
+		} else
+			removeCase4(n);
 	}
 	public void removeCase4(Node<T> n){
-		 Node<T> s =n.getSibling();
+		Node<T> s =n.getSibling();
 
-		 if ((n.getParent().getColor() == Color.Red) &&
-		     (s.getColor() == Color.Black) &&
-		     (s.getLeft().getColor() == Color.Black) &&
-		     (s.getRight().getColor() == Color.Black)) {
-		  s.setColor(Color.Red);
-		  n.getParent().setColor(Color.Black);
-		 } else
-		  removeCase5(n);	
+		if ((n.getParent().getColor() == Color.Red) &&
+				(s.getColor() == Color.Black) &&
+				(s.getLeft().getColor() == Color.Black) &&
+				(s.getRight().getColor() == Color.Black)) {
+			s.setColor(Color.Red);
+			n.getParent().setColor(Color.Black);
+		} else
+			removeCase5(n);	
 	}
 	public void removeCase5(Node<T> n){
-		 Node<T> s= n.getSibling();
+		Node<T> s= n.getSibling();
 
-		 if  (s.getColor() == Color.Black) { /* this if statement is trivial,
+		if  (s.getColor() == Color.Black) { /* this if statement is trivial,
 		due to case 2 (even though case 2 changed the sibling to a sibling's child,
 		the sibling's child can't be red, since no red parent can have a red child). */
-		/* the following statements just force the red to be on the left of the left of the parent,
+			/* the following statements just force the red to be on the left of the left of the parent,
 		   or right of the right, so case six will rotate correctly. */
-		  if ((n == n.getParent().getLeft()) &&
-		      (s.getRight().getColor() == Color.Black) &&
-		      (s.getLeft().getColor() == Color.Red)) { /* this last test is trivial too due to cases 2-4. */
-		   s.setColor(Color.Red);
-		   s.getLeft().setColor(Color.Black);
-		   rotateRight(s);
-		  } else if ((n == n.getParent().getRight() &&
-		             (s.getLeft().getColor() == Color.Black) &&
-		             (s.getRight().getColor() == Color.Red))) {/* this last test is trivial too due to cases 2-4. */
-		   s.setColor( Color.Red);
-		   s.getRight().setColor(Color.Black);
-		   rotateLeft(s);
-		  }
-		 }
-		 removeCase6(n);
+			if ((n == n.getParent().getLeft()) &&
+					(s.getRight().getColor() == Color.Black) &&
+					(s.getLeft().getColor() == Color.Red)) { /* this last test is trivial too due to cases 2-4. */
+				s.setColor(Color.Red);
+				s.getLeft().setColor(Color.Black);
+				rotateRight(s);
+			} else if ((n == n.getParent().getRight() &&
+					(s.getLeft().getColor() == Color.Black) &&
+					(s.getRight().getColor() == Color.Red))) {/* this last test is trivial too due to cases 2-4. */
+				s.setColor( Color.Red);
+				s.getRight().setColor(Color.Black);
+				rotateLeft(s);
+			}
+		}
+		removeCase6(n);
 	}
 	public void removeCase6(Node<T> n){
-		 Node<T> s = n.getSibling();
+		Node<T> s = n.getSibling();
 
-		 s.setColor(n.getParent().getColor());
-		 n.getParent().setColor(Color.Black);
+		s.setColor(n.getParent().getColor());
+		n.getParent().setColor(Color.Black);
 
-		 if (n == n.getParent().getLeft()) {
-		  s.getRight().setColor(Color.Black);
-		  rotateLeft(n.getParent());
-		 } else {
-		  s.getLeft().setColor(Color.Black);
-		  rotateRight(n.getParent());
-		 }	
+		if (n == n.getParent().getLeft()) {
+			s.getRight().setColor(Color.Black);
+			rotateLeft(n.getParent());
+		} else {
+			s.getLeft().setColor(Color.Black);
+			rotateRight(n.getParent());
+		}	
 	}
 }
-          
